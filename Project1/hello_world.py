@@ -1,12 +1,14 @@
 from flask import Flask, request, make_response,render_template 
 from flask_sqlalchemy import SQLAlchemy 
 
+
 # initializing Flask app 
 app = Flask(__name__) 
+app.debug = True 
 
-@app.route('/api/hello')
-def hello_world():
-	return 'Hello, Xinwei! 2025'
+# @app.route('/api/hello')
+# def hello_world():
+# 	return 'Hello, Xinwei! 2025'
 
 # Google Cloud SQL (change this accordingly) 
 PASSWORD = "12345678"
@@ -25,8 +27,86 @@ db = SQLAlchemy(app)
 # User ORM for SQLAlchemy 
 class Users(db.Model): 
 	id = db.Column(db.Integer, primary_key = True, nullable = False) 
-	name = db.Column(db.String(50), nullable = False) 
+	
+	sid = db.Column(db.String(50), nullable = False) 
+	firstname = db.Column(db.String(50), nullable = False) 
 	email = db.Column(db.String(50), nullable = False, unique = True) 
+
+
+@app.route('/api/index', methods=['GET', 'POST']) #allow both GET and POST requests
+def index():
+	return render_template('post_user.html')
+
+@app.route('/api/get', methods=['GET', 'POST']) #allow both GET and POST requests
+def get():
+	users = Users.query.all() 
+	print(users)
+	response = list() 
+
+	for user in users: 
+		response.append({ 
+			"fistname" : user.firstname, 
+			"sid": user.sid,
+			"email": user.email 
+		}) 
+
+	return make_response({ 
+		'status' : 'success', 
+		'message': response 
+	}, 200)
+
+
+@app.route('/api/post', methods =['GET', 'POST']) 
+def post(): 
+	# geting name and email 
+	sid = request.form['sid']
+	firstname = request.form['firstname']
+	email = request.form['email'] 
+	print(sid, firstname, email)
+
+	#checking if user id already exists
+	db.create_all()  
+	user = Users.query.filter_by(sid = sid).first()
+	print(user)
+	# db.create_all()
+	if not user: 
+		try: 
+			# creating Users object 
+			user = Users( 
+				sid = sid, 
+				email = email,
+				firstname = firstname, 
+			) 
+
+			# adding the fields to users table 
+			db.session.add(user) 
+			db.session.commit()
+			# response 
+			responseObject = { 
+				'status' : 'success', 
+				'message': 'Sucessfully registered.'
+			} 
+
+			return make_response(responseObject, 200) 
+		
+		except Exception as e: 
+			responseObject = { 
+				'status' : 'fail', 
+				'message': 'Error: {}'.format(e)
+			} 
+
+			return make_response(responseObject, 400) 
+	else: 
+		# if user already exists then send status as fail 
+		responseObject = { 
+			'status' : 'fail', 
+			'message': 'User already exists !!'
+		} 
+		return make_response(responseObject, 403) 
+
+
+
+
 
 
 @app.route('/api/form', methods=['GET', 'POST']) #allow both GET and POST requests
@@ -63,6 +143,16 @@ def form():
               </form>'''
 
 
+ 
+# @app.route('/api/index', methods=['GET', 'POST'])
+# def index():
+#     search = MusicSearchForm(request.form)
+#     if request.method == 'POST':
+#         return search_results(search)
+ 
+#     return render_template('index.html', form=search)
+ 
+
 @app.route('/api/add', methods =['GET', 'POST']) 
 def add(): 
 	# geting name and email 
@@ -84,7 +174,6 @@ def add():
 			# adding the fields to users table 
 			db.session.add(user) 
 			db.session.commit()
-			print("LALALALA")
 			# response 
 			responseObject = { 
 				'status' : 'success', 
@@ -105,35 +194,33 @@ def add():
 			'status' : 'fail', 
 			'message': 'User already exists !!'
 		} 
-
 		return make_response(responseObject, 403) 
+
+@app.route("/api/result")
+def result():
+	users = Users.query.all() 
+	search_item = Users.query.filter_by(name="ivy")
+	return render_template('template.html', users=users, search_item=search_item)
 
 @app.route('/api/view') 
 def view(): 
 	# fetches all the users 
 	users = Users.query.all() 
-	for user in users:
-		print(user.name)
-	# response list consisting user details 
-	# return '''{},{}
-    # '''.format(users.name, users.email)
+	response = list() 
 
+	for user in users: 
+		response.append({ 
+			"fistname" : user.firstname, 
+			"sid": user.sid,
+			"email": user.email 
+		}) 
 
-
-
-	# response = list() 
-
-	# for user in users: 
-	# 	response.append({ 
-	# 		"name" : user.name, 
-	# 		"email": user.email 
-	# 	}) 
-
-	# return make_response({ 
-	# 	'status' : 'success', 
-	# 	'message': response 
-	# }, 200)
+	return make_response({ 
+		'status' : 'success', 
+		'message': response 
+	}, 200)
 
 
 if __name__ == "__main__": 
-	app.run()
+	# app.run()
+	app.run(debug=True)
