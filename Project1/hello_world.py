@@ -18,10 +18,10 @@ PROJECT_ID ="stellar-chariot-290118"
 INSTANCE_NAME ="student-account-847"
 
 # configuration 
-#app.config["SECRET_KEY"] = "123455678"
+app.config["SECRET_KEY"] = "123455678"
 app.config["SQLALCHEMY_DATABASE_URI"]= f"mysql+mysqldb://root:{PASSWORD}@{PUBLIC_IP_ADDRESS}/{DBNAME}?unix_socket=/cloudsql/{PROJECT_ID}:{INSTANCE_NAME}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]= True
-app.config['WHOOSH_BASE'] = 'results'
+# app.config['WHOOSH_BASE'] = 'results'
 
 db = SQLAlchemy(app) 
 
@@ -30,38 +30,46 @@ class Users(db.Model):
 	__searchable__ =['sid', 'firstname']
 	id = db.Column(db.Integer, primary_key = True, nullable = False) 
 	
-	sid = db.Column(db.String(50), nullable = False) 
+	sid = db.Column(db.String(50), nullable = False, unique = True) 
 	firstname = db.Column(db.String(50), nullable = False) 
-	# lastname = db.Column(db.String(50), nullable = False)
+	lastname = db.Column(db.String(50), nullable = False)
+	address = db.Column(db.String(50), nullable = False)
 	email = db.Column(db.String(50), nullable = False, unique = True) 
+	gpa = db.Column(db.String(50), nullable = False)
 	
 # wa.whoosh_index(app, Users) # whoosh
-
+### home page ###
 @app.route('/api/index', methods=['GET', 'POST']) #allow both GET and POST requests
 def index():
 	return render_template('post_user.html')
-
-
+### database base####
 @app.route('/api/result', methods=['GET', 'POST']) 
 def result():
 	users = Users.query.all()
 	return render_template('result.html', users = users)	
-
-@app.route('/api/search', methods=['GET', 'POST']) 
-def search():
-	print("@@@@In search@@@")
+## Search function ####
+@app.route('/api/searchID', methods=['GET', 'POST']) 
+def searchID():
 	users = Users.query.all()
-	query = request.args.get('query')
-	# print("search_result:", search_result)
-	# search_result = search.data['query']
-	print("query:", query)
+	get_request = request.args.get('query_id')
+	one_item_id = Users.query.filter_by(sid=get_request).all()
+	return render_template('result.html', users = users, one_item_id=one_item_id)
 
-	# search_result = Users.query.whoosh_search(request.args.get('query')).all()
-	# print("search_result:", search_result)
+@app.route('/api/searchFirstname', methods=['GET', 'POST']) 
+def searchFirstname():
+	users = Users.query.all()
+	get_request = request.args.get('query_fn')
+	one_item_fn = Users.query.filter_by(firstname=get_request).all()
+	return render_template('result.html', users = users, one_item_fn=one_item_fn)
 
-	
-	return render_template('result.html', users = users )
+@app.route('/api/searchLastname', methods=['GET', 'POST']) 
+def searchLastname():
+	users = Users.query.all()
+	get_request = request.args.get('query_ln')
+	one_item_ln = Users.query.filter_by(lastname=get_request).all()
+	return render_template('result.html', users = users, one_item_ln=one_item_ln)
 
+### End of Search ####
 @app.route('/api/get', methods=['GET', 'POST']) 
 def get():
 	users = Users.query.all() 
@@ -85,7 +93,11 @@ def post():
 	# geting name and email 
 	sid = request.form['sid']
 	firstname = request.form['firstname']
-	email = request.form['email'] 
+	lastname = request.form['lastname']
+	address = request.form['address']
+	email = request.form['email']
+	gpa = request.form['gpa'] 
+
 
 	#checking if user id already exists
 	db.create_all()  
@@ -98,6 +110,9 @@ def post():
 				sid = sid, 
 				email = email,
 				firstname = firstname, 
+				lastname = lastname,
+				gpa = gpa,
+				address = address,
 			) 
 
 			# adding the fields to users table 

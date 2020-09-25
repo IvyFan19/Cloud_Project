@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Flask Template Example</title>
+    <title>Database</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
     <style type="text/css">
       .container {
         font-size: 15px;
-        max-width: 500px;
+        /* max-width: 100px; */
         padding: 50px;
       }
     </style>
@@ -17,29 +17,43 @@
       <h2> All Data</h2>
       <ul>
         {% for user in users %}
-          {{user.id}}. sid:{{user.sid}}, name: {{user.firstname}}, email: {{user.email}}<br>
+          {{user.id}}. sid:{{user.sid}}, firstname: {{user.firstname}}, lastname:{{user.lastname}}, email: {{user.email}}, address: {{user.address}}, gpa: {{user.gpa}}<br>
         {% endfor %}
       </ul>
 
       <div>
         <h2>Search</h2>
-        <form method="GET" action="/api/search">
-          <lable for="query">SID/Firstname/Lastname</lable>
-          <input type="text" name="query" id="query"><br>
-          <button type="submit">Submit</button>
+
+        <form method="GET" action="/api/searchID">
+          <lable for="query">SID</lable>
+          <input type="text" name="query_id" id="query_id">
+          <button type="submit">Search</button>
         </form>
-      </div>
+        {% for user in one_item_id %}
+          {{user.id}}. sid:{{user.sid}}, firstname: {{user.firstname}}, lastname:{{user.lastname}}, email: {{user.email}}, address: {{user.address}}, gpa: {{user.gpa}}<br>
+        {% endfor %}
+        <br>
 
+        <form method="GET" action="/api/searchFirstname">
+          <lable for="query">Firstname</lable>
+          <input type="text" name="query_fn" id="query_fn">
+          <button type="submit">Search</button>
+        </form>
+        {% for user in one_item_fn %}
+          {{user.id}}. sid:{{user.sid}}, firstname: {{user.firstname}}, lastname:{{user.lastname}}, email: {{user.email}}, address: {{user.address}}, gpa: {{user.gpa}}<br>
+        {% endfor %}
+        <br>
 
-      <p>{{search_result}}</p>
-
-  
+        <form method="GET" action="/api/searchLastname">
+          <lable for="query">Lastname</lable>
+          <input type="text" name="query_ln" id="query_ln">
+          <button type="submit">Search</button>
+        </form>
+        {% for user in one_item_ln %}
+          {{user.id}}. sid:{{user.sid}}, firstname: {{user.firstname}}, lastname:{{user.lastname}}, email: {{user.email}}, address: {{user.address}}, gpa: {{user.gpa}}<br>
+        {% endfor %}
 
     </div>
-
-
-
-
 
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
